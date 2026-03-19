@@ -1,6 +1,6 @@
 ---
 title: "Compare proportions among groups"
-author: "JSG"
+author: Richard Williams
 format:
   html:
     embed-resources: true
@@ -252,16 +252,50 @@ http://statland.org/Software_Help/DataDesk/datafile.htm
 
 We want to again test if heart attacks occur equally across genders.
 
+```{r}
+table(heart_attacks$SEX)
+```
+```{r}
+binom.test(7779, 7779+5065)
+```
+p value is alot less than .05 therefore I reject the null hypothesis 
+
 -   What if we know that males actually make up 50.8% of the population?
+```{r}
+binom.test(7779, 7779+5065, .508)
+```
+
 
 #### 2
 
 Still using the heart attack data, is survival independent of gender?
+```{r}
+table(heart_attacks$SEX, heart_attacks$DIED)
+
+
+```
+```{r}
+chisq.test(table(heart_attacks$SEX, heart_attacks$DIED))
+
+```
+A chi-square test of independence was used to determine whether survival is independent of gender. The test was significant (p < 0.05), so we reject the null hypothesis. Survival is not independent of gender.
 
 #### 3
 
 For people that have a heart attack before they turn 30, is survival
 independent of gender?
+
+```{r}
+chisq.test(table(heart_attacks[heart_attacks$AGE < 30, "SEX"], 
+                 heart_attacks[heart_attacks$AGE <30, "DIED"]))
+
+```
+```{r}
+fisher.test(table(heart_attacks[heart_attacks$AGE < 30, "SEX"], 
+                  heart_attacks[heart_attacks$AGE <30, "DIED"]))
+```
+.
+I found a p-value of 1, thus I fail to reject the null hypothesis.
 
 ### Dolphins
 
@@ -281,6 +315,29 @@ Is travelling independent of time of day? You’ll need to consider
 traveling vs not traveling due to different number of groups observed in
 each period. Carry out post-hoc tests if needed.
 
+```{r}
+travel_table <- as.table(matrix(c(6, 28+ 38, 6, 9, 14, 9, 13, 66), nrow = 4, byrow = T))
+#Adding in row and column names will make everything easier to read at end.
+colnames(travel_table) = c("travel", "not_travel")
+rownames(travel_table) = c("morning", "noon", "afternoon", "night")
+#now look at it
+travel_table
+```
+```{r}
+chisq.test(travel_table)
+```
+```{r}
+chisq.test(travel_table)$expected
+```
+```{r}
+fisher.test(travel_table)
+```
+```{r}
+library(rcompanion)
+pairwiseNominalIndependence(travel_table, compare = "row", method = "holm")
+```
+A resulting p-value of <.001 led me reject the null hypothesis. Since I was comparing more than two groups, I used a post-hoc test to see which periods were different and found that travel differed between morning and noon, morning and afternoon, and afternoon and night
+
 ### Smoking
 
 #### 5
@@ -291,3 +348,19 @@ http://www.r-tutor.com/elementary-statistics/goodness-fit/chi-squared-test-indep
 
 to determine if smoking is independent of exercise. You’ll need to input
 data manually. Carry out post-hoc tests if needed.
+
+```{r}
+smoke <- chisq.test(matrix(c(7, 1, 3, #spacing just for visual use
+                             87,18,84,
+                             12,3,4,
+                             9,1,7), nrow = 4, byrow = T))
+```
+```{r}
+fisher.test(matrix(c(7, 1, 3, #spacing just for visuals
+                     87,18,84,
+                     12,3,4,
+                     9,1,7), nrow = 4, byrow = T))
+```
+A p-value of .4138 meant I failed to reject the null hypothesis.
+
+
